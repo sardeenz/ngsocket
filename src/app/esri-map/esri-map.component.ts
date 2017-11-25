@@ -23,7 +23,7 @@ export class EsriMapComponent implements OnInit {
     // only load the ArcGIS API for JavaScript when this component is loaded
     return this.esriLoader.load({
       // use a specific version of the JSAPI
-      url: 'https://js.arcgis.com/4.3/'
+      url: 'https://js.arcgis.com/4.6/'
     }).then(() => {
       // load the needed Map and MapView modules from the JSAPI
       this.esriLoader.loadModules([
@@ -42,13 +42,13 @@ export class EsriMapComponent implements OnInit {
         GraphicsLayer
       ]) => {
         const mapProperties: __esri.MapProperties = {
-          basemap: 'streets-night-vector' as any as __esri.BasemapProperties
+          basemap: 'topo' as any as __esri.BasemapProperties
         };
         const map = new Map(mapProperties);
           const mapViewProperties: __esri.MapViewProperties = {
           container: this.mapViewEl.nativeElement,
           center: [-78.65, 35.8] as any as __esri.PointProperties,
-          zoom: 1,
+          zoom: 10,
           map
         };
         this.MapView = new MapView(mapViewProperties);
