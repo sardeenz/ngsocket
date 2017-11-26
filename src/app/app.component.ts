@@ -3,6 +3,9 @@ import * as io from 'socket.io-client';
 import { EsriLoaderService } from 'angular-esri-loader';
 import { EsriMapComponent } from './esri-map/esri-map.component';
 import { ViewChild } from '@angular/core';
+import { GetAllCrashesService } from './get-all-crashes.service';
+import { Subscription } from 'rxjs/Subscription';
+
 // let redis = require('redis'),
 // client = redis.createClient();
 
@@ -27,13 +30,22 @@ export class AppComponent implements OnInit, OnDestroy {
   // @ViewChild('map') mapEl: ElementRef;
   // map: any;
 
-  constructor(private esriLoader: EsriLoaderService) {}
+  constructor(private esriLoader: EsriLoaderService, private getAllCrashes: GetAllCrashesService) { }
 
   ngOnDestroy(): void {
     throw new Error('Method not implemented.');
   }
 
   ngOnInit(): void {
+
+    this.getAllCrashes.getGeometry().subscribe(mobojumbo => {
+      console.log('data from buildings = ', mobojumbo.key);
+    },
+      err => {
+        console.log('some error happened');
+      }
+    );
+
     this.socket = io(this.url);
     this.socket.on('messageFromServer', data => {
       console.log('message from server:', this.coords = data);
@@ -47,31 +59,31 @@ export class AppComponent implements OnInit, OnDestroy {
 
   zoomAndSetMarker(coords) {
     this.esriLoader.loadModules(['esri/Map', 'esri/layers/GraphicsLayer', 'esri/geometry/Point',
-    'esri/symbols/SimpleMarkerSymbol', 'esri/Graphic', 'esri/Map']).then(([Map, GraphicsLayer, Point, SimpleMarkerSymbol, Graphic]) => {
-      console.log('x = ', coords.x);
-      console.log('y = ', coords.y);
-      this.markerSymbol = new SimpleMarkerSymbol({
-        color: [226, 119, 40],
-        outline: { // autocasts as new SimpleLineSymbol()
-          color: [255, 255, 255],
-          width: 2
-        }
-      });
-      this.pointGraphic = new Graphic({
-        geometry: new Point({
-          longitude: coords.x,
-          latitude: coords.y
-        })
-      });
+      'esri/symbols/SimpleMarkerSymbol', 'esri/Graphic', 'esri/Map']).then(([Map, GraphicsLayer, Point, SimpleMarkerSymbol, Graphic]) => {
+        console.log('x = ', coords.x);
+        console.log('y = ', coords.y);
+        this.markerSymbol = new SimpleMarkerSymbol({
+          color: [226, 119, 40],
+          outline: { // autocasts as new SimpleLineSymbol()
+            color: [255, 255, 255],
+            width: 2
+          }
+        });
+        this.pointGraphic = new Graphic({
+          geometry: new Point({
+            longitude: coords.x,
+            latitude: coords.y
+          })
+        });
 
-      this.pointGraphic.symbol = this.markerSymbol;
-      this.esriMapComponent.MapView.goTo({
-        center: [coords.x, coords.y],
-        zoom: 17
+        this.pointGraphic.symbol = this.markerSymbol;
+        this.esriMapComponent.MapView.goTo({
+          center: [coords.x, coords.y],
+          zoom: 17
+        });
+        // this.esriMapComponent.mapView.graphics.removeAll();
+        this.esriMapComponent.MapView.graphics.add(this.pointGraphic);
       });
-      // this.esriMapComponent.mapView.graphics.removeAll();
-      this.esriMapComponent.MapView.graphics.add(this.pointGraphic);
-    });
 
     // this.esriLoader.require(['esri/Map', 'esri/layers/GraphicsLayer', 'esri/geometry/Point',
     //   'esri/symbols/SimpleMarkerSymbol', 'esri/Graphic', 'esri/Map'],
