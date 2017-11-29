@@ -12,6 +12,9 @@ export class EsriMapComponent implements OnInit {
 
   public MapView: __esri.MapView;
   public maploaded: Element;
+  public pointGraphic: __esri.Graphic;
+  public markerSymbol: __esri.SimpleMarkerSymbol;
+  public graphicsLayer: __esri.GraphicsLayer;
 
   @ViewChild('mapViewNode') private mapViewEl: ElementRef;
 
@@ -56,6 +59,69 @@ export class EsriMapComponent implements OnInit {
         console.log(this.maploaded);
       });
     });
+  }
+
+  setMarkers(x, y) {
+    this.esriLoader.loadModules(['esri/Map', 'esri/layers/GraphicsLayer', 'esri/geometry/Point',
+    'esri/symbols/SimpleMarkerSymbol', 'esri/Graphic', 'esri/Map']).then(([Map, GraphicsLayer, Point, SimpleMarkerSymbol, Graphic]) => {
+      console.log('x = ', x);
+      console.log('y = ', y);
+      this.markerSymbol = new SimpleMarkerSymbol({
+        color: [226, 119, 40],
+        outline: { // autocasts as new SimpleLineSymbol()
+          color: [255, 255, 255],
+          width: 2
+        }
+      });
+      this.pointGraphic = new Graphic({
+        geometry: new Point({
+          longitude: x,
+          latitude: y
+        })
+      });
+
+      this.pointGraphic.symbol = this.markerSymbol;
+      // this.esriMapComponent.MapView.goTo({
+      //   center: [coords.x, coords.y],
+      //   zoom: 17
+      // });
+      // this.esriMapComponent.mapView.graphics.removeAll();
+      this.MapView.graphics.add(this.pointGraphic);
+    });
+
+  }
+
+  // This gets called when there's a new tweet
+  zoomAndSetMarker(coords) {
+    console.log('is map loaded? we are now in esri-map.component', this.maploaded);
+    this.esriLoader.loadModules(['esri/Map', 'esri/layers/GraphicsLayer', 'esri/geometry/Point',
+      'esri/symbols/SimpleMarkerSymbol', 'esri/Graphic', 'esri/Map']).then(([Map, GraphicsLayer, Point, SimpleMarkerSymbol, Graphic]) => {
+        console.log('x = ', coords.x);
+        console.log('y = ', coords.y);
+        this.markerSymbol = new SimpleMarkerSymbol({
+          color: [226, 119, 40],
+          outline: { // autocasts as new SimpleLineSymbol()
+            color: [255, 255, 255],
+            width: 2
+          }
+        });
+        this.pointGraphic = new Graphic({
+          geometry: new Point({
+            longitude: coords.x,
+            latitude: coords.y
+          })
+        });
+
+        this.pointGraphic.symbol = this.markerSymbol;
+        this.MapView.goTo({
+          center: [coords.x, coords.y],
+          zoom: 17
+        });
+
+        // this.esriMapComponent.mapView.graphics.removeAll();
+        this.MapView.graphics.add(this.pointGraphic);
+      });
+
   }
 
 }

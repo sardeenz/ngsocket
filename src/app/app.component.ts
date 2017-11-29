@@ -5,6 +5,7 @@ import { EsriMapComponent } from './esri-map/esri-map.component';
 import { ViewChild } from '@angular/core';
 import { GetAllCrashesService } from './get-all-crashes.service';
 import { Subscription } from 'rxjs/Subscription';
+import { RedisLocations } from './redis-locations';
 
 // let redis = require('redis'),
 // client = redis.createClient();
@@ -15,6 +16,10 @@ import { Subscription } from 'rxjs/Subscription';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent implements OnInit, OnDestroy {
+  mapLoaded: Element;
+  y: any;
+  x: any;
+  public mymap: any;
   crashLocations: string[];
 
   coords: any;
@@ -24,6 +29,8 @@ export class AppComponent implements OnInit, OnDestroy {
   public pointGraphic: __esri.Graphic;
   public markerSymbol: __esri.SimpleMarkerSymbol;
   public graphicsLayer: __esri.GraphicsLayer;
+  redisLocations = new RedisLocations();
+  redisLocationsArr: string[];
 
   @ViewChild(EsriMapComponent) esriMapComponent: EsriMapComponent;
 
@@ -38,81 +45,41 @@ export class AppComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
 
-    this.getAllCrashes.getGeometry().subscribe(mobojumbo => {
-      console.log('data from buildings = ', mobojumbo.key);
+    console.log('is map loaded?', this.esriMapComponent.maploaded);
+    // display all points stored in redis db
+    this.getAllCrashes.getGeometry().subscribe(redisLocations => {
+      for (const redisLocation in redisLocations) {
+        if (redisLocation) {
+          this.x = redisLocations[redisLocation].latitude;
+          this.y = redisLocations[redisLocation].longitude;
+          // this.redisLocationsArr.push()
+          // this.setMarkers(this.x, this.y);
+        }
+      }
+      if (this.esriMapComponent.maploaded) {
+        this.esriMapComponent.setMarkers(this.x, this.y);
+      }
     },
       err => {
         console.log('some error happened');
       }
     );
 
+    // listen for new tweets of crashes, and animate to map
     this.socket = io(this.url);
     this.socket.on('messageFromServer', data => {
       console.log('message from server:', this.coords = data);
-      this.zoomAndSetMarker(this.coords);
+      console.log('is map loaded?', this.esriMapComponent.maploaded);
+      this.esriMapComponent.zoomAndSetMarker(this.coords);
     });
     this.socket.on('crashLocation', data => {
-      console.log('crashLocation:', data);
+      // console.log('crashLocation:', data);
       this.crashLocations.push(data);
     });
   }
 
-  zoomAndSetMarker(coords) {
-    this.esriLoader.loadModules(['esri/Map', 'esri/layers/GraphicsLayer', 'esri/geometry/Point',
-      'esri/symbols/SimpleMarkerSymbol', 'esri/Graphic', 'esri/Map']).then(([Map, GraphicsLayer, Point, SimpleMarkerSymbol, Graphic]) => {
-        console.log('x = ', coords.x);
-        console.log('y = ', coords.y);
-        this.markerSymbol = new SimpleMarkerSymbol({
-          color: [226, 119, 40],
-          outline: { // autocasts as new SimpleLineSymbol()
-            color: [255, 255, 255],
-            width: 2
-          }
-        });
-        this.pointGraphic = new Graphic({
-          geometry: new Point({
-            longitude: coords.x,
-            latitude: coords.y
-          })
-        });
 
-        this.pointGraphic.symbol = this.markerSymbol;
-        this.esriMapComponent.MapView.goTo({
-          center: [coords.x, coords.y],
-          zoom: 17
-        });
-        // this.esriMapComponent.mapView.graphics.removeAll();
-        this.esriMapComponent.MapView.graphics.add(this.pointGraphic);
-      });
 
-    // this.esriLoader.require(['esri/Map', 'esri/layers/GraphicsLayer', 'esri/geometry/Point',
-    //   'esri/symbols/SimpleMarkerSymbol', 'esri/Graphic', 'esri/Map'],
-    //   (Map, GraphicsLayer, Point, SimpleMarkerSymbol, Graphic) => {
-    //     console.log('x = ', coords.x);
-    //     console.log('y = ', coords.y);
-    //     this.markerSymbol = new SimpleMarkerSymbol({
-    //       color: [226, 119, 40],
-    //       outline: { // autocasts as new SimpleLineSymbol()
-    //         color: [255, 255, 255],
-    //         width: 2
-    //       }
-    //     });
-    //     this.pointGraphic = new Graphic({
-    //       geometry: new Point({
-    //         longitude: coords.x,
-    //         latitude: coords.y
-    //       })
-    //     });
 
-    //     this.pointGraphic.symbol = this.markerSymbol;
-    //     this.esriMapComponent.MapView.goTo({
-    //       center: [coords.x, coords.y],
-    //       zoom: 17
-    //     });
-    //     // this.esriMapComponent.mapView.graphics.removeAll();
-    //     this.esriMapComponent.MapView.graphics.add(this.pointGraphic);
-    //   });
-
-  }
 
 }
