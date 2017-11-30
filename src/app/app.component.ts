@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ElementRef } from '@angular/core';
+import { Component, OnDestroy, OnInit, ElementRef, DoCheck } from '@angular/core';
 import * as io from 'socket.io-client';
 import { EsriLoaderService } from 'angular-esri-loader';
 import { EsriMapComponent } from './esri-map/esri-map.component';
@@ -16,6 +16,7 @@ import { RedisLocations } from './redis-locations';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent implements OnInit, OnDestroy {
+
   mapLoaded: Element;
   y: any;
   x: any;
@@ -37,7 +38,7 @@ export class AppComponent implements OnInit, OnDestroy {
   // @ViewChild('map') mapEl: ElementRef;
   // map: any;
 
-  constructor(private esriLoader: EsriLoaderService, private getAllCrashes: GetAllCrashesService) { }
+  constructor(private esriLoader: EsriLoaderService) { }
 
   ngOnDestroy(): void {
     throw new Error('Method not implemented.');
@@ -47,23 +48,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
     console.log('is map loaded?', this.esriMapComponent.maploaded);
     // display all points stored in redis db
-    this.getAllCrashes.getGeometry().subscribe(redisLocations => {
-      for (const redisLocation in redisLocations) {
-        if (redisLocation) {
-          this.x = redisLocations[redisLocation].latitude;
-          this.y = redisLocations[redisLocation].longitude;
-          // this.redisLocationsArr.push()
-          // this.setMarkers(this.x, this.y);
-        }
-      }
-      if (this.esriMapComponent.maploaded) {
-        this.esriMapComponent.setMarkers(this.x, this.y);
-      }
-    },
-      err => {
-        console.log('some error happened');
-      }
-    );
+
 
     // listen for new tweets of crashes, and animate to map
     this.socket = io(this.url);
@@ -76,10 +61,13 @@ export class AppComponent implements OnInit, OnDestroy {
       // console.log('crashLocation:', data);
       this.crashLocations.push(data);
     });
+
+
   }
 
-
-
+  loadCrashes() {
+    this.esriMapComponent.getAll();
+  }
 
 
 }

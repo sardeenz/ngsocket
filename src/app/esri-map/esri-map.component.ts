@@ -2,6 +2,7 @@ import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 
 // also import the "angular2-esri-loader" to be able to load JSAPI modules
 import { EsriLoaderService } from 'angular-esri-loader';
+import { GetAllCrashesService } from '../get-all-crashes.service';
 
 @Component({
   selector: 'app-esri-map',
@@ -9,6 +10,8 @@ import { EsriLoaderService } from 'angular-esri-loader';
   styleUrls: ['./esri-map.component.css']
 })
 export class EsriMapComponent implements OnInit {
+  y: any;
+  x: any;
 
   public MapView: __esri.MapView;
   public maploaded: Element;
@@ -19,7 +22,7 @@ export class EsriMapComponent implements OnInit {
   @ViewChild('mapViewNode') private mapViewEl: ElementRef;
 
   constructor(
-    private esriLoader: EsriLoaderService
+    private esriLoader: EsriLoaderService, private getAllCrashes: GetAllCrashesService
   ) { }
 
   public ngOnInit() {
@@ -47,7 +50,7 @@ export class EsriMapComponent implements OnInit {
         const mapProperties: __esri.MapProperties = {
           basemap: 'topo' as any as __esri.BasemapProperties
         };
-        const map = new Map(mapProperties);
+          const map = new Map(mapProperties);
           const mapViewProperties: __esri.MapViewProperties = {
           container: this.mapViewEl.nativeElement,
           center: [-78.65, 35.8] as any as __esri.PointProperties,
@@ -75,8 +78,8 @@ export class EsriMapComponent implements OnInit {
       });
       this.pointGraphic = new Graphic({
         geometry: new Point({
-          longitude: x,
-          latitude: y
+          longitude: y,
+          latitude: x
         })
       });
 
@@ -113,15 +116,34 @@ export class EsriMapComponent implements OnInit {
         });
 
         this.pointGraphic.symbol = this.markerSymbol;
-        this.MapView.goTo({
-          center: [coords.x, coords.y],
-          zoom: 17
-        });
+        // this.MapView.goTo({
+        //   center: [coords.x, coords.y],
+        //   zoom: 17
+        // });
 
         // this.esriMapComponent.mapView.graphics.removeAll();
         this.MapView.graphics.add(this.pointGraphic);
       });
-
   }
 
+  getAll() {
+  console.log('hiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii');
+  this.getAllCrashes.getGeometry().subscribe(redisLocations => {
+    for (const redisLocation in redisLocations) {
+      if (redisLocation) {
+        this.x = redisLocations[redisLocation].latitude;
+        this.y = redisLocations[redisLocation].longitude;
+        // this.redisLocationsArr.push()
+        this.setMarkers(this.x, this.y);
+      }
+    }
+    if (this.maploaded) {
+      this.setMarkers(this.x, this.y);
+    }
+  },
+    err => {
+      console.log('some error happened');
+    }
+  );
+  }
 }
