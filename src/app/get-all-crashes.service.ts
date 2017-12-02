@@ -11,7 +11,6 @@ export class GetAllCrashesService {
   url = 'http://localhost:3000/';
 
   getGeometry(): Observable<RedisLocations> {
-    console.log('inside getFacilities Service');
     return this.http.get<RedisLocations>(this.url);
     }
 

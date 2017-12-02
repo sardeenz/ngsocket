@@ -11,6 +11,8 @@ import { MapServiceService } from '../map-service.service';
   styleUrls: ['./esri-map.component.css']
 })
 export class EsriMapComponent implements OnInit {
+  floatx: number;
+  floaty: number;
   y: number;
   x: number;
   map: any;
@@ -74,14 +76,11 @@ export class EsriMapComponent implements OnInit {
   }
 
   setMarkers(x, y) {
-    // this.maploaded = this.MapView.initialized;
-    console.log('setMarkers maploaded boolean', this.maploaded);
-
     this.esriLoader.require(['esri/Map', 'esri/layers/GraphicsLayer', 'esri/geometry/Point',
     'esri/symbols/SimpleMarkerSymbol', 'esri/Graphic'],
     (Map, GraphicsLayer, Point, SimpleMarkerSymbol, Graphic) => {
-      console.log('x = ', x);
-      console.log('y = ', typeof y);
+      // console.log('x = ', x);
+      // console.log('y = ', typeof y);
       this.markerSymbol = new SimpleMarkerSymbol({
         color: [226, 119, 40],
         outline: { // autocasts as new SimpleLineSymbol()
@@ -104,12 +103,9 @@ export class EsriMapComponent implements OnInit {
   // This gets called when there's a new tweet
   zoomAndSetMarker(coords) {
     // must be numbers not strings
-    coords.x = parseFloat(coords.x);
-    coords.y = parseFloat(coords.y);
-    console.log(
-      'is map loaded? we are now in esri-map.component',
-      this.maploaded
-    );
+    this.floatx = parseFloat(coords.x);
+    this.floaty = parseFloat(coords.y);
+    
     this.esriLoader
       .loadModules([
         'esri/Map',
@@ -120,8 +116,8 @@ export class EsriMapComponent implements OnInit {
         'esri/Map'
       ])
       .then(([Map, GraphicsLayer, Point, SimpleMarkerSymbol, Graphic]) => {
-        console.log('x = ', coords.x);
-        console.log('y = ', coords.y);
+        console.log('x = ', this.floatx);
+        console.log('y = ', this.floaty);
         this.markerSymbol = new SimpleMarkerSymbol({
           color: [226, 119, 40],
           outline: {
@@ -132,12 +128,14 @@ export class EsriMapComponent implements OnInit {
         });
         this.pointGraphic = new Graphic({
           geometry: new Point({
-            longitude: coords.x,
-            latitude: coords.y
+            longitude: this.floatx,
+            latitude: this.floaty
           })
         });
         this.pointGraphic.symbol = this.markerSymbol;
+        this.MapView.goTo({center: [this.floatx, this.floaty], zoom: 17});
         this.MapView.graphics.add(this.pointGraphic);
+
       });
   }
 

@@ -50,8 +50,6 @@ export class MapServiceService {
               };
               this.MapView = new MapView(mapViewProperties);
               this.maploaded = this.MapView.initialized;
-              console.log('initMapLoaded = ' , this.maploaded);
-
             }
           );
       });

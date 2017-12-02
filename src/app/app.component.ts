@@ -23,6 +23,7 @@ import { RedisLocations } from "./redis-locations";
   styleUrls: ["./app.component.css"]
 })
 export class AppComponent implements OnInit, OnDestroy, AfterViewInit {
+  crashLocation = 'first';
   mapLoaded: Element;
   y: any;
   x: any;
@@ -51,11 +52,11 @@ export class AppComponent implements OnInit, OnDestroy, AfterViewInit {
     // this.esriMapComponent.MapView.then(function() {
     //   this.loadCrashes();
     // });
-    
+
+    // this is a hack to allow the map to finish loading
     setTimeout(() => {
-      console.log('just before loadCrashes');
       this.loadCrashes();
-    }, 1000);
+    }, 1500);
   }
 
   ngOnDestroy(): void {
@@ -63,23 +64,24 @@ export class AppComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngOnInit(): void {
-    console.log('is map loaded?', this.esriMapComponent.maploaded);
+    // console.log('is map loaded?', this.esriMapComponent.maploaded);
     // display all points stored in redis db
 
     // listen for new tweets of crashes, and animate to map
     this.socket = io(this.url);
     this.socket.on('messageFromServer', data => {
-      console.log('message from server:', (this.coords = data));
-      console.log('is map loaded?', this.esriMapComponent.maploaded);
-      this.esriMapComponent.zoomAndSetMarker(this.coords);
+      console.log('messagefromServer:', (this.coords = data));
+
+      if (this.coords) {
+        this.esriMapComponent.zoomAndSetMarker(this.coords);
+      }
     });
     this.socket.on('crashLocation', data => {
-      console.log('crashLocation:', data);
+      console.log('crashLocation:', this.crashLocation = data);
+      // this.crashLocations.push(this.crashLocation);
       // this.crashLocations.push(data);
     });
-    if (this.esriMapComponent.maploaded) {
-      this.loadCrashes();
-    }
+
   }
 
   loadCrashes() {
