@@ -7,6 +7,7 @@ import { AppComponent } from './app.component';
 import { EsriMapComponent } from './esri-map/esri-map.component';
 import { EsriLoaderService } from 'angular-esri-loader';
 import { GetAllCrashesService } from './get-all-crashes.service';
+import { MapServiceService } from './map-service.service';
 
 @NgModule({
   declarations: [
